@@ -3,6 +3,7 @@ import os
 import pickle
 
 import numpy as np
+import numpy.ma as ma
 from sklearn.metrics import auc, precision_recall_curve, roc_curve
 
 import data
@@ -135,12 +136,18 @@ def calculate_roc(*,
             if model_number in model_numbers:
                 # GAN, not upscale
                 inputs, outputs = next(data_pred_iter)
+                truth = outputs['output']
+                mask = outputs['mask']
+                # create masked array for denormalisation step
+                norm_masked_truth = ma.array(truth, mask=mask)
                 # need to denormalise
-                im_real = data.denormalise(outputs['output']).astype(np.single)  # shape: batch_size x H x W
+                im_real = data.denormalise(norm_masked_truth).astype(np.single)  # shape: batch_size x H x W
             else:
                 # upscale, no need to denormalise
                 inputs, outputs = next(data_benchmarks_iter)
-                im_real = outputs['output'].astype(np.single)  # shape: batch_size x H x W
+                truth = outputs['output']
+                mask = outputs['mask']
+                im_real = ma.array(truth, mask=mask).astype(np.single)
 
             if model_number in model_numbers:
                 # get GAN predictions
