@@ -11,8 +11,8 @@ ECMWF:
 AOPP:
     GENERAL:
         RADAR_PATH: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/NIMROD'
-        FORECAST_PATH: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/IFS'
-        CONSTANTS_PATH: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/constants'
+        FORECAST_PATH: '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/UK/input/ERA5'
+        CONSTANTS_PATH: '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/UK/input'
 
     TFRecords:
-        tfrecords_path: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/tfrecordsIFS20'
+        tfrecords_path: '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/UK/tfrecords'
