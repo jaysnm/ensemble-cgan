@@ -1,11 +1,11 @@
-LOCATION1:
+AOPP:
     GENERAL:
-        RADAR_PATH: '/path/to/radar/data'
-        FORECAST_PATH: '/path/to/forecast/data'
-        CONSTANTS_PATH: '/path/to/constants/data'
+        RADAR_PATH: '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/Sioux/input/rainfall'
+        FORECAST_PATH: '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/Sioux/input/ERA5'
+        CONSTANTS_PATH: '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/Sioux/input'
 
     TFRecords:
-        tfrecords_path: '/path/to/tfrecords/folder'
+        tfrecords_path: '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Sioux/tfrecords'
 
 
 LOCATION2:
