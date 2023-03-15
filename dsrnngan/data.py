@@ -39,18 +39,29 @@ def get_dates(year):
 
 def load_radar_and_mask(date, hour, log_precip=False, aggregate=1):
     year = date[:4]
-    data_path = os.path.join(RADAR_PATH, year, f"metoffice-c-band-rain-radar_uk_{date}.nc")
+    data_path = os.path.join(RADAR_PATH, year, f"reduced_stageIV_{date}.nc")
     data = xr.open_dataset(data_path)
     assert hour+aggregate < 25
-    y = np.array(data['unknown'][hour:hour+aggregate, :, :]).sum(axis=0)
+    y = np.array(data['rainfall_rate'][hour:hour+aggregate, :, :]).sum(axis=0)
     data.close()
     # The remapping of the NIMROD radar left a few negative numbers, so remove those
-    y[y < 0.0] = 0.0
+    # y[y < 0.0] = 0.0
+    y = y[::-1, :]
+    # crop from 951x951 down to 940x940
+    y = y[5:-6, 5:-6]
 
     # mask: False for valid radar data, True for invalid radar data
     # (compatible with the NumPy masked array functionality)
     # if all data is valid:
-    mask = np.full(y.shape, False, dtype=bool)
+    # mask = np.full(y.shape, False, dtype=bool)
+    
+    # Load the mask
+    data_path = os.path.join(CONSTANTS_PATH, "data_mask.nc")
+    data = xr.open_dataset(data_path)
+    mask = np.logical_not(np.array(data['mask'], dtype=bool))
+    mask = mask[::-1, :]
+    # crop from 951x951 down to 940x940
+    mask = mask[5:-6, 5:-6]
 
     if log_precip:
         return np.log10(1+y), mask
@@ -66,18 +77,24 @@ def logprec(y, log_precip=True):
 
 
 def load_hires_constants(batch_size=1):
-    oro_path = os.path.join(CONSTANTS_PATH, "orography.nc")
-    df = xr.load_dataset(oro_path)
+    lsm_path = os.path.join(CONSTANTS_PATH, "land_sea_mask.nc")
+    df = xr.load_dataset(lsm_path)
     # LSM is already 0:1
-    lsm = np.array(df['LSM'])
+    lsm = np.array(df['LSM'])[:, ::-1, :]
+    df.close()
 
+    oro_path = os.path.join(CONSTANTS_PATH, "elevation.nc")
+    df = xr.load_dataset(oro_path)
     # Orography.  Clip below, to remove spectral artifacts, and normalise by max
-    z = df['z'].data
+    z = df['z'].data[:, ::-1, :]
     z[z < 5] = 5
     z = z/z.max()
 
     df.close()
     # print(z.shape, lsm.shape)
+    # crop from 951x951 down to 940x940
+    lsm = lsm[..., 5:-6, 5:-6]
+    z = z[..., 5:-6, 5:-6]
     return np.repeat(np.stack([z, lsm], -1), batch_size, axis=0)
 
 
@@ -110,49 +127,27 @@ def load_fcst_radar_batch(batch_dates, fcst_fields=all_fcst_fields, log_precip=F
         return [np.array(batch_x), load_hires_constants(len(batch_dates))], np.array(batch_y), np.array(batch_mask)
 
 
-def load_fcst(ifield, date, hour, log_precip=False, norm=False):
-    # Get the time required (compensating for IFS forecast saving precip at the end of the timestep)
-    time = datetime(year=int(date[:4]), month=int(date[4:6]), day=int(date[6:8]), hour=hour) + timedelta(hours=1)
+def load_fcst(field, date, hour, log_precip=False, norm=False):
+    
+    year=int(date[:4])
+    
+    loaddata_str = str(year)
+    fleheader = field
 
-    # Get the correct forecast starttime
-    if time.hour < 6:
-        tmpdate = time - timedelta(days=1)
-        loaddate = datetime(year=tmpdate.year, month=tmpdate.month, day=tmpdate.day, hour=18)
-        loadtime = '12'
-    elif 6 <= time.hour < 18:
-        tmpdate = time
-        loaddate = datetime(year=tmpdate.year, month=tmpdate.month, day=tmpdate.day, hour=6)
-        loadtime = '00'
-    elif 18 <= time.hour < 24:
-        tmpdate = time
-        loaddate = datetime(year=tmpdate.year, month=tmpdate.month, day=tmpdate.day, hour=18)
-        loadtime = '12'
-    else:
-        assert False, "Not acceptable time"
-    dt = time - loaddate
-    time_index = int(dt.total_seconds()//3600)
-    assert time_index >= 1, "Cannot use first hour of retrival"
-    loaddata_str = loaddate.strftime("%Y%m%d") + '_' + loadtime
-
-    field = ifield
-    if field in ['u700', 'v700']:
-        fleheader = 'winds'
-        field = field[:1]
-    elif field in ['cdir', 'tcrw']:
-        fleheader = 'missing'
-    else:
-        fleheader = 'sfc'
-
-    ds_path = os.path.join(FCST_PATH, f"{fleheader}_{loaddata_str}.nc")
-    ds = xr.open_dataset(ds_path)
-    data = ds[field]
-    field = ifield
-    if field in ['tp', 'cp', 'cdir', 'tisr']:
-        data = data[time_index, :, :] - data[time_index-1, :, :]
-    else:
-        data = data[time_index, :, :]
-
+    # Convert to hours since the start of the year to get the index
+    tNow = datetime(int(date[:4]), int(date[4:6]), int(date[6:8]), int(hour))
+    tYear = datetime(int(date[:4]), 1, 1)
+    dt = tNow - tYear
+    time_index = int(dt.total_seconds()/3600.0)
+    
+    ds = xr.open_dataset(f"{FCST_PATH}/{fleheader}_{loaddata_str}.nc")
+    data = ds[field][time_index, :, :]
+    
+    #y = np.array(data[::-1, :])
     y = np.array(data[:, :])
+    # crop from 96x96 to 94x94
+    y = y[1:-1, 1:-1]
+
     data.close()
     ds.close()
     if field in ['tp', 'cp', 'pr', 'prl', 'prc']:
@@ -226,7 +221,8 @@ def gen_fcst_norm(year=2018):
             stats_dic[f] = [0, max(-stats[0], stats[1])]
         else:
             stats_dic[f] = [0, stats[1]]
-    fcstnorm_path = os.path.join(CONSTANTS_PATH, f"FCSTNorm{year}.pkl")
+    # fcstnorm_path = os.path.join(CONSTANTS_PATH, f"FCSTNorm{year}.pkl")
+    fcstnorm_path = os.path.join("/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Washington", f"FCSTNorm{year}.pkl")
     with open(fcstnorm_path, 'wb') as f:
         pickle.dump(stats_dic, f, 0)
     return
@@ -234,7 +230,7 @@ def gen_fcst_norm(year=2018):
 
 def load_fcst_norm(year=2018):
     import pickle
-    fcstnorm_path = os.path.join(CONSTANTS_PATH, f"FCSTNorm{year}.pkl")
+    fcstnorm_path = os.path.join("/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Washington", f"FCSTNorm{year}.pkl")
     with open(fcstnorm_path, 'rb') as f:
         return pickle.load(f)
 
