@@ -53,7 +53,14 @@ def load_radar_and_mask(date, hour, log_precip=False, aggregate=1):
     # mask: False for valid radar data, True for invalid radar data
     # (compatible with the NumPy masked array functionality)
     # if all data is valid:
-    mask = np.full(y.shape, False, dtype=bool)
+    # mask = np.full(y.shape, False, dtype=bool)
+    
+    # Load the mask
+    data_path = os.path.join(CONSTANTS_PATH, "data_mask_2.nc")
+    data = xr.open_dataset(data_path)
+    mask = np.logical_not(np.array(data['mask'], dtype=bool))
+    # crop from 951x951 down to 940x940
+    mask = mask[5:-6, 5:-6]
 
     if log_precip:
         return np.log10(1+y), mask
