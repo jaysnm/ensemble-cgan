@@ -19,9 +19,9 @@ fcst_hours = np.array(range(24))
 
 def denormalise(x):
     """
-    Undo log-transform of rainfall.  Also cap at 500 (feel free to adjust according to application!)
+    Undo log-transform of rainfall.  Also cap at 100 (feel free to adjust according to application!)
     """
-    return np.minimum(10**x - 1, 500.0)
+    return np.minimum(10**x - 1, 100.0)
 
 
 def get_dates(year):
