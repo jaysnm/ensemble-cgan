@@ -13,7 +13,7 @@ TRUTH_PATH = data_paths["GENERAL"]["TRUTH_PATH"]
 FCST_PATH = data_paths["GENERAL"]["FORECAST_PATH"]
 CONSTANTS_PATH = data_paths["GENERAL"]["CONSTANTS_PATH"]
 
-all_fcst_fields = ['tp', 'cp', 'sp', 'tisr', 'cape', 'tclw', 'tcwv', 'u700', 'v700']
+all_fcst_fields = ['cape', 'cp', 'lsp', 'mcc', 'sp', 'ssr', 't2m', 'tciw', 'tclw', 'tcrw', 'tcw', 'tcwv', 'tp', 'u10', 'u700', 'v10', 'v700']
 fcst_hours = np.array(range(24))
 
 
@@ -144,7 +144,7 @@ def load_fcst(ifield, date, hour, log_precip=False, norm=False):
     ds = xr.open_dataset(ds_path)
     data = ds[field]
     field = ifield
-    if field in ['tp', 'cp', 'cdir', 'tisr']:
+    if field in ['tp', 'cp', 'lsp', 'ssr']:
         data = data[time_index, :, :] - data[time_index-1, :, :]
     else:
         data = data[time_index, :, :]
@@ -152,11 +152,11 @@ def load_fcst(ifield, date, hour, log_precip=False, norm=False):
     y = np.array(data[:, :])
     data.close()
     ds.close()
-    if field in ['tp', 'cp', 'pr', 'prl', 'prc']:
+    if field in ['tp', 'cp', 'lsp']:
         # print('pass')
         y[y < 0] = 0.
         y = 1000*y
-    if log_precip and field in ['tp', 'cp', 'pr', 'prc', 'prl']:
+    if log_precip and field in ['tp', 'cp', 'lsp']:
         # precip is measured in metres, so multiply up
         return np.log10(1+y)  # *1000)
     elif norm:
