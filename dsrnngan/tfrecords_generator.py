@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 import read_config
-from data import all_fcst_fields, fcst_hours, get_dates
+from data import all_fcst_fields, get_dates, HOURS
 
 
 data_paths = read_config.get_data_paths()
@@ -14,9 +14,9 @@ records_folder = data_paths["TFRecords"]["tfrecords_path"]
 ds_fac = read_config.read_downscaling_factor()["downscaling_factor"]
 
 CLASSES = 4
-DEFAULT_FCST_SHAPE = (20, 20, len(all_fcst_fields))
-DEFAULT_CON_SHAPE = (200, 200, 2)
-DEFAULT_OUT_SHAPE = (200, 200, 1)
+DEFAULT_FCST_SHAPE = (128, 128, 2*len(all_fcst_fields))
+DEFAULT_CON_SHAPE = (128, 128, 2)
+DEFAULT_OUT_SHAPE = (128, 128, 1)
 
 
 def DataGenerator(years, batch_size, repeat=True, autocoarsen=False, weights=None):
@@ -159,7 +159,6 @@ def _float_feature(list_of_floats):  # float32
 def write_data(year,
                folder=records_folder,
                fcst_fields=all_fcst_fields,
-               hours=fcst_hours,
                img_chunk_width=DEFAULT_FCST_SHAPE[0],  # controls size of subsampled image
                num_class=CLASSES,
                log_precip=True,
@@ -168,8 +167,8 @@ def write_data(year,
     assert isinstance(year, int)
 
     # change this to your forecast image size!
-    img_size_h = 94
-    img_size_w = 94
+    img_size_h = 384
+    img_size_w = 352
 
     scaling_factor = ds_fac
 
@@ -177,28 +176,36 @@ def write_data(year,
     nsamples = img_size_h*img_size_w//(img_chunk_width**2)
     print("Samples per image:", nsamples)  # note, actual samples may be less than this if mask is used to exclude some
 
-    dates = get_dates(year)
-    # split TFRecords by hour
-    for hour in hours:
-        dgc = DataGeneratorFull(dates=dates,
+    # split TFRecords by lead time, in case this is useful for training on subsets of lead time
+    for time_idx in range(28):
+        print(f"Doing time index {time_idx}")
+        s_hour = time_idx*HOURS
+        e_hour = (time_idx + 1)*HOURS
+        dates = get_dates(year,
+                          start_hour=s_hour,
+                          end_hour=e_hour)
+        dgc = DataGeneratorFull(dates,
                                 fcst_fields=fcst_fields,
+                                start_hour=s_hour,
+                                end_hour=e_hour,
                                 batch_size=1,
                                 log_precip=log_precip,
                                 shuffle=False,
                                 constants=True,
-                                hour=hour,
                                 fcst_norm=fcst_norm)
+
         fle_hdles = []
         for fh in range(num_class):
-            flename = os.path.join(folder, f"{year}_{hour}.{fh}.tfrecords")
+            flename = os.path.join(folder, f"{year}_{time_idx}.{fh}.tfrecords")
             # compress generated TFRecords, courtesy Fenwick
             options = tf.io.TFRecordOptions(compression_type="GZIP")
             fle_hdles.append(tf.io.TFRecordWriter(flename, options=options))
 
         for batch in range(len(dgc)):
             if (batch % 10) == 0:
-                print(hour, batch)
+                print(time_idx, batch)
             sample = dgc.__getitem__(batch)
+
             for ii in range(nsamples):
                 # e.g. for image width 94 and img_chunk_width 20, can have 0:20 up to 74:94
                 idh = random.randint(0, img_size_h-img_chunk_width)
@@ -239,6 +246,7 @@ def write_data(year,
                 clss = min(int(np.floor(((truth > 0.1).mean()*num_class))), num_class-1)
 
                 fle_hdles[clss].write(example_to_string)
+
         for fh in fle_hdles:
             fh.close()
 
