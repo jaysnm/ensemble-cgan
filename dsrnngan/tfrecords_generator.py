@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 import read_config
-from data import all_fcst_fields, get_dates, HOURS
+from data import all_fcst_fields, denormalise, get_dates, HOURS
 
 
 data_paths = read_config.get_data_paths()
@@ -170,6 +170,10 @@ def write_data(year,
     img_size_h = 384
     img_size_w = 352
 
+    # binning: bin 0 is sample mean rainfall < 0.2mm/hr, bin 1 is 0.2-0.3mm/hr, etc
+    bins = [0.2, 0.3, 0.45]
+    assert num_class == 4
+
     scaling_factor = ds_fac
 
     # chosen to approximately cover the full image, but can be changed!
@@ -238,12 +242,17 @@ def write_data(year,
                 example = tf.train.Example(features=features)
                 example_to_string = example.SerializeToString()
 
-                # all class binning is in this one line.
-                # as written, calculates proportion of image with "some rain"
-                # [specifically, log10(1 + rainfall) > 0.1]
-                # and bins into one of 4 classes: 0-25%, 25-50%, 50-75%, 75-100%
-                # feel free to replace with a different binning strategy!
-                clss = min(int(np.floor(((truth > 0.1).mean()*num_class))), num_class-1)
+                # decide which bin to put this sample in
+                truth_raw = denormalise(truth)  # undo log10(1+x) transformation
+                truth_mean = truth_raw.mean()
+                if truth_mean < bins[0]:
+                    clss = 0
+                elif truth_mean < bins[1]:
+                    clss = 1
+                elif truth_mean < bins[2]:
+                    clss = 2
+                else:
+                    clss = 3
 
                 fle_hdles[clss].write(example_to_string)
 
