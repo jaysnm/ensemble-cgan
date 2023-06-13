@@ -8,6 +8,7 @@ import matplotlib; matplotlib.use("Agg")  # noqa: E702
 import numpy as np
 import pandas as pd
 
+import data
 import evaluation
 import plots
 import read_config
@@ -83,6 +84,7 @@ if __name__ == "__main__":
     noise_factor = setup_params["EVAL"]["postprocessing_noise_factor"]
     max_pooling = setup_params["EVAL"]["max_pooling"]
     avg_pooling = setup_params["EVAL"]["avg_pooling"]
+    constant_fields = 2  # future todo: have dataset config file?
 
     # otherwise these are of type string, e.g. '1e-5'
     lr_gen = float(lr_gen)
@@ -114,7 +116,7 @@ if __name__ == "__main__":
 
     if problem_type == "normal":
         autocoarsen = False
-        input_channels = 9
+        input_channels = 2*len(data.all_fcst_fields)
     elif problem_type == "autocoarsen":
         autocoarsen = True
         input_channels = 1
@@ -123,11 +125,15 @@ if __name__ == "__main__":
 
     if args.do_training:
         # initialize GAN
+
+        # future todo: all these arguments should be wrapped inside
+        # a nice dictionary, or similar, with sensible default values
         model = setupmodel.setup_model(
             mode=mode,
             arch=arch,
             downscaling_steps=df_dict["steps"],
             input_channels=input_channels,
+            constant_fields=constant_fields,
             latent_variables=latent_variables,
             filters_gen=filters_gen,
             filters_disc=filters_disc,
@@ -243,6 +249,7 @@ if __name__ == "__main__":
                                                  filters_gen=filters_gen,
                                                  filters_disc=filters_disc,
                                                  input_channels=input_channels,
+                                                 constant_fields=constant_fields,
                                                  latent_variables=latent_variables,
                                                  noise_channels=noise_channels,
                                                  padding=padding,
