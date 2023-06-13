@@ -143,10 +143,10 @@ gen.load_weights(weights_fn)
 #                                     autocoarsen=autocoarsen)
 
 if problem_type != 'autocoarsen':
-    tpidx = all_fcst_fields.index('tp')
-    cpidx = all_fcst_fields.index('cp')
-    uidx = all_fcst_fields.index('u700')
-    vidx = all_fcst_fields.index('v700')
+    tpidx = 2*all_fcst_fields.index('tp')
+    cpidx = 2*all_fcst_fields.index('cp')
+    uidx = 2*all_fcst_fields.index('u700')  # 2*idx is u/v at start of step
+    vidx = 2*all_fcst_fields.index('v700')  # use 2*idx + 1 to get end of step
 
 pred = []
 seq_real = []

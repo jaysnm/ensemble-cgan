@@ -117,7 +117,7 @@ def plot_fss_curves(*,
                                             constants=True,
                                             hour="random",
                                             fcst_norm=False)
-        tpidx = all_fcst_fields.index('tp')
+        tpidx = 2*all_fcst_fields.index('tp')
 
     # tidier to iterate over GAN checkpoints and NN-interp using joint code
     model_numbers_ec = model_numbers.copy()
