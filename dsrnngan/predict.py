@@ -33,7 +33,7 @@ cmap = ListedColormap(sns.color_palette("YlGnBu", 256))
 cmap.set_under('white')
 cmap.set_bad('black')
 linewidth = 0.4
-extent = [-7.5, 2, 49.5, 59]  # (lon, lat)
+extent = [19.1, 54.3, -13.7, 24.7]  # left, right, bottom, top
 alpha = 0.8
 dpi = 200
 
@@ -84,20 +84,19 @@ noise_channels = setup_params["GENERATOR"]["noise_channels"]
 latent_variables = setup_params["GENERATOR"]["latent_variables"]
 filters_disc = setup_params["DISCRIMINATOR"]["filters_disc"]
 val_years = setup_params["VAL"]["val_years"]
-lr_gen = setup_params["GENERATOR"]["learning_rate_gen"]
-lr_gen = float(lr_gen)
+constant_fields = 2
 
 data_paths = read_config.get_data_paths()
 
 batch_size = 1
 
 weights_fn = os.path.join(log_folder, 'models', f'gen_weights-{model_number}.h5')
-dates = get_dates(predict_year)
+dates = get_dates(predict_year, start_hour=0, end_hour=168)
 
 if problem_type == "normal":
     autocoarsen = False
     plot_input_title = 'Forecast'
-    input_channels = 9
+    input_channels = 2*len(all_fcst_fields)
 elif problem_type == "autocoarsen":
     autocoarsen = True
     plot_input_title = 'Downsampled'
@@ -107,11 +106,12 @@ elif problem_type == "autocoarsen":
 plot_label = 'large'
 data_predict = DataGeneratorFull(dates=dates,
                                  fcst_fields=all_fcst_fields,
+                                 start_hour=0,
+                                 end_hour=168,
                                  batch_size=batch_size,
                                  log_precip=True,
                                  shuffle=True,
                                  constants=True,
-                                 hour='random',
                                  fcst_norm=True,
                                  autocoarsen=autocoarsen)
 
@@ -121,12 +121,12 @@ model = setup_model(mode=mode,
                     arch=arch,
                     downscaling_steps=downscaling_steps,
                     input_channels=input_channels,
+                    constant_fields=constant_fields,
                     filters_gen=filters_gen,
                     filters_disc=filters_disc,
                     noise_channels=noise_channels,
                     latent_variables=latent_variables,
-                    padding=padding,
-                    lr_gen=lr_gen)
+                    padding=padding)
 gen = model.gen
 if mode == "VAEGAN":
     _init_VAEGAN(gen, data_predict, batch_size, latent_variables)
@@ -135,15 +135,16 @@ gen.load_weights(weights_fn)
 # dataset for benchmarks - not currently used
 # data_benchmarks = DataGeneratorFull(dates=dates,
 #                                     fcst_fields=data.all_fcst_fields,
+#                                     start_hour=0,
+#                                     end_hour=168,
 #                                     batch_size=batch_size,
 #                                     log_precip=False,
 #                                     shuffle=True,
-#                                     hour='random',
 #                                     fcst_norm=False,
 #                                     autocoarsen=autocoarsen)
 
 if problem_type != 'autocoarsen':
-    tpidx = 2*all_fcst_fields.index('tp')
+    tpidx = 2*all_fcst_fields.index('tp')  # 2*idx is tp, 2*idx+1 is zeroes
     cpidx = 2*all_fcst_fields.index('cp')
     uidx = 2*all_fcst_fields.index('u700')  # 2*idx is u/v at start of step
     vidx = 2*all_fcst_fields.index('v700')  # use 2*idx + 1 to get end of step
@@ -159,7 +160,7 @@ for i in range(num_samples):
     inputs, outputs = next(data_predict_iter)
 
     dates_save.append(data_predict.dates[i])
-    hours_save.append(data_predict.hours[i])
+    hours_save.append(data_predict.time_idxs[i])
 
     # autocoarsened problem has only one input field
     if problem_type == 'autocoarsen':
@@ -173,8 +174,10 @@ for i in range(num_samples):
         input_conditions[..., tpidx] = data.denormalise(inputs['lo_res_inputs'][..., tpidx])
         input_conditions[..., cpidx] = data.denormalise(inputs['lo_res_inputs'][..., cpidx])
         #  denormalise wind inputs
-        input_conditions[..., uidx] = inputs['lo_res_inputs'][..., uidx]*fcst_norm['u700'][1] + fcst_norm['u700'][0]
-        input_conditions[..., vidx] = inputs['lo_res_inputs'][..., vidx]*fcst_norm['v700'][1] + fcst_norm['v700'][0]
+        u_mult = max(-fcst_norm['u700']["min"], fcst_norm['u700']["max"])
+        v_mult = max(-fcst_norm['v700']["min"], fcst_norm['v700']["max"])
+        input_conditions[..., uidx] = inputs['lo_res_inputs'][..., uidx]*u_mult
+        input_conditions[..., vidx] = inputs['lo_res_inputs'][..., vidx]*v_mult
     else:
         # assuming one channel only
         input_conditions[..., 0] = data.denormalise(inputs['lo_res_inputs'][..., 0])
@@ -190,6 +193,7 @@ for i in range(num_samples):
 
     print(f"sample number {i+1}")
     print(f"max truth value is {np.max(seq_real[-1])}")
+
     pred_ensemble = []
     if mode == 'det':  # this is plotting det as a model
         pred_ensemble_size = 1  # can't generate an ensemble with deterministic method
@@ -229,9 +233,9 @@ for i in range(num_samples):
 # list entry[0] - sample image 0
 if problem_type != 'autocoarsen':
     fcst_total = seq_cond[0][0, ..., tpidx]  # total precip
-    fcst_conv = seq_cond[0][0, ..., cpidx]  # convective precip
-    fcst_u700 = seq_cond[0][0, ..., uidx]  # u700
-    fcst_v700 = seq_cond[0][0, ..., vidx]  # v700
+    fcst_conv = seq_cond[0][0, ..., cpidx]
+    fcst_u700 = seq_cond[0][0, ..., uidx]
+    fcst_v700 = seq_cond[0][0, ..., vidx]
 else:
     fcst_total = seq_cond[0][0, ..., 0]
 constant_0 = seq_const[0][0, ..., 0]  # orog
@@ -372,7 +376,7 @@ for i in range(num_samples):
     else:
         tmp[plot_input_title] = np.maximum(seq_cond[i][0, ..., 0], 1e-6)
     tmp['dates'] = dates_save[i]
-    tmp['hours'] = hours_save[i]
+    tmp['time_idxs'] = hours_save[i]
     for j in range(pred_ensemble_size):
         tmp[f"{mode} pred {j+1}"] = np.maximum(pred[i][j][0, ..., 0], 1e-6)
     sequences.append(tmp)
@@ -404,7 +408,7 @@ for k in range(num_samples):
                                 extent=extent,
                                 alpha=alpha)
         if i == 0:
-            title = dates_save[k][:4] + '-' + dates_save[k][4:6] + '-' + dates_save[k][6:8] + ' ' + str(hours_save[k]) + 'Z'
+            title = dates_save[k][:4] + '-' + dates_save[k][4:6] + '-' + dates_save[k][6:8] + ' ' + str(hours_save[k]) + ' time period'
             plt.title(title, fontsize=9)
 
         if k == 0:
