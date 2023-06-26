@@ -339,7 +339,7 @@ def evaluate_multiple_checkpoints(*,
                                        padding=padding)
 
     log_line(log_fname, f"Samples per image: {ensemble_size}")
-    log_line(log_fname, f"Initial dates/times: {data_gen_valid.dates[0:4]}, {data_gen_valid.hours[0:4]}")
+    log_line(log_fname, f"Initial dates/time indices: {data_gen_valid.dates[0:4]}, {data_gen_valid.time_idxs[0:4]}")
     log_line(log_fname, "N CRPS CRPS_max_4 CRPS_max_16 CRPS_avg_4 CRPS_avg_16 RMSE EMRMSE RALSD MAE OP")
 
     for model_number in model_numbers:
