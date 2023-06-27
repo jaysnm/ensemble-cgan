@@ -28,19 +28,23 @@ def generator(mode,
     const_input = Input(shape=(None, None, constant_fields), name="hi_res_inputs")
     print(f"constants_input shape: {const_input.shape}")
 
+    # Point-wise processing of forecast fields
+    pp_generator_input = Conv2D(filters=filters_gen, kernel_size=(1, 1), strides=1, padding="valid", activation="relu")(generator_input)
+    print(f"pp_generator_input shape: {pp_generator_input.shape}")
+
     # Convolve constant fields down to match other input dimensions
     upscaled_const_input = const_upscale_block(const_input, steps=downscaling_steps, filters=filters_gen)
     print(f"upscaled constants shape: {upscaled_const_input.shape}")
 
     if mode in ('det', 'VAEGAN'):
         # Concatenate all inputs together
-        generator_output = concatenate([generator_input, upscaled_const_input])
+        generator_output = concatenate([pp_generator_input, upscaled_const_input])
     elif mode == 'GAN':
         # noise
         noise_input = Input(shape=(None, None, noise_channels), name="noise_input")
         print(f"noise_input shape: {noise_input.shape}")
         # Concatenate all inputs together
-        generator_output = concatenate([generator_input, upscaled_const_input, noise_input])
+        generator_output = concatenate([pp_generator_input, upscaled_const_input, noise_input])
         print(f"Shape after first concatenate: {generator_output.shape}")
 
     # Pass through 3 residual blocks
@@ -127,12 +131,16 @@ def discriminator(arch,
     generator_output = Input(shape=(None, None, 1), name="output")
     print(f"generator_output shape: {generator_output.shape}")
 
+    # Point-wise processing of forecast fields
+    pp_generator_input = Conv2D(filters=filters_disc, kernel_size=(1, 1), strides=1, padding="valid", activation="relu")(generator_input)
+    print(f"pp_generator_input shape: {pp_generator_input.shape}")
+
     # convolve down constant fields to match ERA
     lo_res_const_input = const_upscale_block(const_input, steps=downscaling_steps, filters=filters_disc)
     print(f"upscaled constants shape: {lo_res_const_input.shape}")
 
     # concatenate constants to lo-res input
-    lo_res_input = concatenate([generator_input, lo_res_const_input])
+    lo_res_input = concatenate([pp_generator_input, lo_res_const_input])
     print(f"Shape after lo-res concatenate: {lo_res_input.shape}")
 
     # concatenate constants to hi-res input
