@@ -289,12 +289,12 @@ def eval_one_chkpt(*,
     return arrays, crps_scores, other
 
 
-def rank_OP(norm_ranks, num_ranks=100):
-    op = np.count_nonzero(
-        (norm_ranks == 0) | (norm_ranks == 1)
-    )
-    op = float(op)/len(norm_ranks)
-    return op
+def rank_OP(norm_ranks):
+    opL = np.count_nonzero(norm_ranks == 0)
+    opR = np.count_nonzero(norm_ranks == 1)
+    opL = float(opL)/len(norm_ranks)
+    opR = float(opR)/len(norm_ranks)
+    return opL, opR
 
 
 def log_line(log_fname, line):
@@ -340,7 +340,7 @@ def evaluate_multiple_checkpoints(*,
 
     log_line(log_fname, f"Samples per image: {ensemble_size}")
     log_line(log_fname, f"Initial dates/time indices: {data_gen_valid.dates[0:4]}, {data_gen_valid.time_idxs[0:4]}")
-    log_line(log_fname, "N CRPS CRPS_max_4 CRPS_max_16 CRPS_avg_4 CRPS_avg_16 RMSE EMRMSE RALSD MAE OP")
+    log_line(log_fname, "N CRPS CRPS_max_4 CRPS_max_16 CRPS_avg_4 CRPS_avg_16 RMSE EMRMSE RALSD MAE OPL OPR")
 
     for model_number in model_numbers:
         gen_weights_file = os.path.join(weights_dir, f"gen_weights-{model_number:07d}.h5")
@@ -363,7 +363,7 @@ def evaluate_multiple_checkpoints(*,
                                              ensemble_size=ensemble_size,
                                              noise_factor=noise_factor)
         ranks, lowress, hiress = arrays
-        OP = rank_OP(ranks)
+        OPL, OPR = rank_OP(ranks)
         CRPS_pixel = np.asarray(crps['no_pooling']).mean()
         CRPS_max_4 = np.asarray(crps['max_4']).mean()
         CRPS_max_16 = np.asarray(crps['max_16']).mean()
@@ -375,7 +375,7 @@ def evaluate_multiple_checkpoints(*,
         emrmse = np.sqrt(other['emmse'].mean())
         ralsd = np.nanmean(other['ralsd'])
 
-        log_line(log_fname, f"{model_number} {CRPS_pixel:.6f} {CRPS_max_4:.6f} {CRPS_max_16:.6f} {CRPS_avg_4:.6f} {CRPS_avg_16:.6f} {rmse:.6f} {emrmse:.6f} {ralsd:.6f} {mae:.6f} {OP:.6f}")
+        log_line(log_fname, f"{model_number} {CRPS_pixel:.6f} {CRPS_max_4:.6f} {CRPS_max_16:.6f} {CRPS_avg_4:.6f} {CRPS_avg_16:.6f} {rmse:.6f} {emrmse:.6f} {ralsd:.6f} {mae:.6f} {OPL:.6f} {OPR:.6f}")
 
         # save one directory up from model weights, in same dir as logfile
         ranks_folder = os.path.dirname(log_fname)
