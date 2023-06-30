@@ -101,6 +101,7 @@ def create_dataset(year,
         assert False, f"TFRecords not configure for type {type(year)}"
     files_ds = tf.data.Dataset.list_files(fl)
     ds = tf.data.TFRecordDataset(files_ds,
+                                 compression_type="GZIP",
                                  num_parallel_reads=AUTOTUNE)
     ds = ds.shuffle(shuffle_size)
     ds = ds.map(lambda x: _parse_batch(x,
@@ -131,6 +132,7 @@ def create_fixed_dataset(year=None,
     fl = glob.glob(name)
     files_ds = tf.data.Dataset.list_files(fl)
     ds = tf.data.TFRecordDataset(files_ds,
+                                 compression_type="GZIP",
                                  num_parallel_reads=1)
     ds = ds.map(lambda x: _parse_batch(x,
                                        insize=fcst_shape,
@@ -179,7 +181,10 @@ def write_data(year,
         fle_hdles = []
         for fh in range(num_class):
             flename = os.path.join(records_folder, f"{year}_{hour}.{fh}.tfrecords")
-            fle_hdles.append(tf.io.TFRecordWriter(flename))
+            # Modification to get compressed tfrecords
+            options = tf.io.TFRecordOptions(compression_type="GZIP")
+            fle_hdles.append(tf.io.TFRecordWriter(flename, options=options))
+            # fle_hdles.append(tf.io.TFRecordWriter(flename))
         for batch in range(len(dates)):
             print(hour, batch)
             sample = dgc.__getitem__(batch)

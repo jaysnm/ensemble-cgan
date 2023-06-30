@@ -62,6 +62,8 @@ def load_radar_and_mask(date, hour, log_precip=False, aggregate=1):
     mask = mask[::-1, :]
     # crop from 951x951 down to 940x940
     mask = mask[5:-6, 5:-6]
+    
+    mask = mask | np.isnan(y)
 
     if log_precip:
         return np.log10(1+y), mask
@@ -88,7 +90,13 @@ def load_hires_constants(batch_size=1):
     # Orography.  Clip below, to remove spectral artifacts, and normalise by max
     z = df['z'].data[:, ::-1, :]
     z[z < 5] = 5
-    z = z/z.max()
+    # z = z/z.max()
+    
+    # Normalisation must be the same for all elevation data that this model is applied to
+    # run_eval.py only:
+    file_name = os.path.join(normalisation_path, f"z_norm.npy")
+    z_norm = float(np.load(file_name, allow_pickle=False))
+    z = z/z_norm
 
     df.close()
     # print(z.shape, lsm.shape)
@@ -222,7 +230,7 @@ def gen_fcst_norm(year=2018):
         else:
             stats_dic[f] = [0, stats[1]]
     # fcstnorm_path = os.path.join(CONSTANTS_PATH, f"FCSTNorm{year}.pkl")
-    fcstnorm_path = os.path.join("/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Sioux", f"FCSTNorm{year}.pkl")
+    fcstnorm_path = os.path.join(normalisation_path, f"FCSTNorm{year}.pkl")
     with open(fcstnorm_path, 'wb') as f:
         pickle.dump(stats_dic, f, 0)
     return
@@ -230,10 +238,11 @@ def gen_fcst_norm(year=2018):
 
 def load_fcst_norm(year=2018):
     import pickle
-    fcstnorm_path = os.path.join("/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Sioux", f"FCSTNorm{year}.pkl")
+    fcstnorm_path = os.path.join(normalisation_path, f"FCSTNorm{year}.pkl")
     with open(fcstnorm_path, 'rb') as f:
         return pickle.load(f)
 
+normalisation_path = "/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Sioux"
 
 try:
     fcst_norm = load_fcst_norm(2018)

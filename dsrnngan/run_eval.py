@@ -9,7 +9,18 @@ import read_config
 read_config.set_gpu_mode()  # set up whether to use GPU, and mem alloc mode
 
 # input parameters
-log_folder = '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/andrew-output/rev-mainGAN'; model_numbers = [460800]  # noqa: E702
+# MUST ALSO CHANGE normalisation_path at the end of data.py
+# Run 1
+#log_folder = '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/UK/logs'; model_numbers = [467200]
+#log_folder = '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Washington/logs'; model_numbers = [550400]
+#log_folder = '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Portland/logs'; model_numbers = [505600]
+#log_folder = '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Sioux/logs'; model_numbers = [460800]
+# Run 2
+#log_folder = '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/UK/logs'; model_numbers = [460800]
+#log_folder = '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Washington/logs'; model_numbers = [569600]
+log_folder = '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Portland/logs'; model_numbers = [467200]
+#log_folder = '/network/group/aopp/predict/TIP017_COOPER_SURFACE/cGAN/cache/Sioux/logs'; model_numbers = [454400]
+
 val_years = 2020
 
 model_weights_root = os.path.join(log_folder, "models")
@@ -47,7 +58,7 @@ if mode in ("GAN", "VAEGAN"):
 elif mode == "det":
     ensemble_size = 1
 
-out_fn = os.path.join(log_folder, f"eval_{val_years}.txt")
+out_fn = os.path.join(log_folder, f"eval_Sioux_{val_years}.txt")
 
 evaluation.evaluate_multiple_checkpoints(mode=mode,
                                          arch=arch,
