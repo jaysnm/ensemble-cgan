@@ -136,10 +136,10 @@ class WGANGP(object):
     def compile(self, opt_disc=None, opt_gen=None):
         # create optimizers
         if opt_disc is None:
-            opt_disc = Adam(learning_rate=self.learning_rate_disc, beta_1=0.5, beta_2=0.9)
+            opt_disc = Adam(learning_rate=self.learning_rate_disc, beta_1=0.0, beta_2=0.999)
         self.opt_disc = opt_disc
         if opt_gen is None:
-            opt_gen = Adam(learning_rate=self.learning_rate_gen, beta_1=0.5, beta_2=0.9)
+            opt_gen = Adam(learning_rate=self.learning_rate_gen, beta_1=0.0, beta_2=0.999)
         self.opt_gen = opt_gen
 
         with Nontrainable(self.disc):
