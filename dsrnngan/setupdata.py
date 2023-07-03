@@ -10,7 +10,7 @@ def setup_batch_gen(train_years,
                     autocoarsen=False,
                     weights=None):
 
-    print(f"autocoarsen flag is {autocoarsen}")
+    # print(f"autocoarsen flag is {autocoarsen}")
     batch_gen_train = DataGenerator(train_years,
                                     batch_size=batch_size,
                                     autocoarsen=autocoarsen,

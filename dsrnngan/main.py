@@ -54,7 +54,7 @@ if __name__ == "__main__":
     with open(config_path, 'r') as f:
         try:
             setup_params = yaml.safe_load(f)
-            print(setup_params)
+            # print(setup_params)
         except yaml.YAMLError as exc:
             print(exc)
 

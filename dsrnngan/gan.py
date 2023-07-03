@@ -162,7 +162,7 @@ class WGANGP(object):
                 loss_weights=[1.0, 1.0, self.gradient_penalty_weight],
                 optimizer=self.opt_disc
             )
-            self.disc_trainer.summary()
+            # self.disc_trainer.summary()
 
     def train(self, batch_gen, noise_gen, num_gen_batches=1,
               training_ratio=1, show_progress=True):
