@@ -402,7 +402,10 @@ def calculate_ralsd_rmse(truth, samples):
     # truth may contain invalid (masked-out) data.
     # replace this by the mean... (could instead replace by 0.
     # neither is perfect, and both will affect the spectrum somewhat)
-    filled_truth = truth.filled(truth.mean())
+    try:
+        filled_truth = truth.filled(truth.mean())
+    except:
+        filled_truth = truth.copy()
 
     fft_freq_truth = rapsd(np.squeeze(filled_truth, axis=0), fft_method=np.fft)
     dBtruth = 10 * np.log10(fft_freq_truth)
