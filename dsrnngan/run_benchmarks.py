@@ -37,14 +37,15 @@ batch_size = 1  # memory issues
 log_fname = os.path.join(log_folder, f"benchmarks_{predict_year}_{num_images}.txt")
 
 # setup data
-dates = get_dates(predict_year)
+dates = get_dates(predict_year, start_hour=0, end_hour=168)
 data_benchmarks = DataGeneratorFull(dates=dates,
                                     fcst_fields=all_fcst_fields,
+                                    start_hour=0,
+                                    end_hour=168,
                                     batch_size=batch_size,
                                     log_precip=False,  # no need to denormalise data
                                     shuffle=True,
                                     constants=True,
-                                    hour='random',
                                     fcst_norm=False)
 
 benchmark_methods = []
