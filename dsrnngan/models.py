@@ -158,6 +158,7 @@ def discriminator(arch,
     # encode in residual blocks
     disc_input = residual_block(disc_input, filters=filters_disc, conv_size=conv_size, stride=1, relu_alpha=relu_alpha, norm=norm, padding=padding, force_1d_conv=forceconv)
     disc_input = residual_block(disc_input, filters=filters_disc, conv_size=conv_size, stride=1, relu_alpha=relu_alpha, norm=norm, padding=padding, force_1d_conv=forceconv)
+    disc_input = residual_block(disc_input, filters=filters_disc, conv_size=conv_size, stride=1, relu_alpha=relu_alpha, norm=norm, padding=padding, force_1d_conv=forceconv)
     # print(f"Shape after residual block: {disc_input.shape}")
     # print('End of second residual block')
 
