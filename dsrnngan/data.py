@@ -15,9 +15,9 @@ TRUTH_PATH = data_paths["GENERAL"]["TRUTH_PATH"]
 FCST_PATH = data_paths["GENERAL"]["FORECAST_PATH"]
 CONSTANTS_PATH = data_paths["GENERAL"]["CONSTANTS_PATH"]
 
-all_fcst_fields = ['cape', 'cp', 'lsp', 'mcc', 'sp', 'ssr', 't2m', 'tciw', 'tclw', 'tcrw', 'tcw', 'tcwv', 'tp', 'u10', 'u700', 'v10', 'v700']
-accumulated_fields = ['cp', 'lsp', 'ssr', 'tp']
-nonnegative_fields = ['cape', 'cp', 'lsp', 'mcc', 'sp', 'ssr', 't2m', 'tciw', 'tclw', 'tcrw', 'tcw', 'tcwv', 'tp']
+all_fcst_fields = ['cape', 'cp', 'mcc', 'sp', 'ssr', 't2m', 'tciw', 'tclw', 'tcrw', 'tcw', 'tcwv', 'tp', 'u700', 'v700']
+accumulated_fields = ['cp', 'ssr', 'tp']
+nonnegative_fields = ['cape', 'cp', 'mcc', 'sp', 'ssr', 't2m', 'tciw', 'tclw', 'tcrw', 'tcw', 'tcwv', 'tp']
 
 HOURS = 6  # 6-hr data
 
@@ -223,7 +223,7 @@ def load_fcst(field,
     if field in nonnegative_fields:
         data = np.maximum(data, 0.0)  # eliminate any data weirdness/regridding issues
 
-    if field in ["tp", "cp", "lsp"]:
+    if field in ["tp", "cp"]:
         # precip is measured in metres, so multiply to get mm
         data *= 1000
         data /= HOURS  # convert to mm/hr
@@ -231,7 +231,7 @@ def load_fcst(field,
         # for all other accumulated fields [just ssr for us]
         data /= (HOURS*3600)  # convert from a 6-hr difference to a per-second rate
 
-    if field in ['tp', 'cp', 'lsp'] and log_precip:
+    if field in ["tp", "cp"] and log_precip:
         return logprec(data, log_precip)
     elif norm:
         # apply transformation to make fields O(1), based on historical
@@ -316,7 +316,7 @@ def get_fcst_stats_fast(field, year=2018):
 
     nc_file.close()
 
-    if field in ["tp", "cp", "lsp"]:
+    if field in ["tp", "cp"]:
         # precip is measured in metres, so multiply to get mm
         data *= 1000
         data /= HOURS  # convert to mm/hr
