@@ -31,7 +31,7 @@ def create_mixed_dataset(years,
                          repeat=True,
                          autocoarsen=False,
                          folder=records_folder,
-                         shuffle_size=1024,
+                         shuffle_size=64,
                          weights=None):
 
     if weights is None:
@@ -91,7 +91,7 @@ def create_dataset(years,
                    con_shape=DEFAULT_CON_SHAPE,
                    out_shape=DEFAULT_OUT_SHAPE,
                    folder=records_folder,
-                   shuffle_size=1024,
+                   shuffle_size=64,
                    repeat=True):
     # TODO: tf.data.Dataset.list_files should accept the list of glob patterns,
     # not the list of globbed filenames
