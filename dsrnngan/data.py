@@ -346,6 +346,7 @@ def gen_fcst_norm(year=2018):
         pickle.dump(stats_dic, f)
 
     for field in all_fcst_fields:
+        print(field)
         mi, mx, mn, sd = get_fcst_stats_fast(field, year)
         stats_dic[field] = {}
         stats_dic[field]['min'] = mi

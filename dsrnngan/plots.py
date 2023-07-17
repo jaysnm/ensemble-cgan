@@ -67,7 +67,6 @@ def plot_sequences(gen,
                    ens_size=4,
                    out_fn=None):
 
-    tpidx = 2*data.all_fcst_fields.index('tp')  # this is probably wrong for autocoarsen!
     data_gen_iter = iter(data_gen)
 
     num_rows = num_cases
