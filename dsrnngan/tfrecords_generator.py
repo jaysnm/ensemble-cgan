@@ -14,7 +14,7 @@ records_folder = data_paths["TFRecords"]["tfrecords_path"]
 ds_fac = read_config.read_downscaling_factor()["downscaling_factor"]
 
 CLASSES = 4
-DEFAULT_FCST_SHAPE = (128, 128, 2*len(all_fcst_fields))
+DEFAULT_FCST_SHAPE = (128, 128, 4*len(all_fcst_fields))
 DEFAULT_CON_SHAPE = (128, 128, 2)
 DEFAULT_OUT_SHAPE = (128, 128, 1)
 

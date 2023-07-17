@@ -10,7 +10,7 @@ import read_config
 read_config.set_gpu_mode()  # set up whether to use GPU, and mem alloc mode
 
 # input parameters
-log_folder = '/ppdata/andrew-output/ICPAC-baseline'; model_numbers = [156800]  # noqa: E702
+log_folder = '/ppdata/andrew-output/ICPAC-ensmeansd'; model_numbers = [153600]  # noqa: E702
 val_years = 2020
 
 model_weights_root = os.path.join(log_folder, "models")
@@ -38,7 +38,7 @@ constant_fields = 2
 num_images = 256
 
 if problem_type == 'normal':
-    input_channels = 2*len(data.all_fcst_fields)
+    input_channels = 4*len(data.all_fcst_fields)
     autocoarsen = False
 elif problem_type == 'autocoarsen':
     input_channels = 1

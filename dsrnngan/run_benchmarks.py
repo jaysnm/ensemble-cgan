@@ -65,7 +65,7 @@ emmse_scores = {}
 mae_scores = {}
 ralsd_scores = {}
 
-tpidx = 2*all_fcst_fields.index('tp')
+tpidx = 4*all_fcst_fields.index('tp')
 
 for benchmark in benchmark_methods:
     crps_scores[benchmark] = {}
