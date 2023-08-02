@@ -51,6 +51,7 @@ class DataGenerator(Sequence):
         self.shuffle = shuffle
         self.fcst_norm = fcst_norm
         self.autocoarsen = autocoarsen
+        self.seed = seed
 
         if self.autocoarsen:
             # read downscaling factor from file

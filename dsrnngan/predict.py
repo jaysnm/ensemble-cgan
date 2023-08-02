@@ -326,7 +326,7 @@ for ii in range(num_samples):
 
     # cannot save as pdf - will produce artefacts
     plt.savefig(os.path.join(log_folder,
-                             f"prediction-and-inputs-{model_number}-{ii}.png"),
+                             f"prediction-and-inputs-{model_number}-{data_predict.seed}-{ii}.png"),
                 bbox_inches='tight')
     plt.close()
 
@@ -393,7 +393,7 @@ if args.plot_all:
 
     # cannot save as pdf - will produce artefacts
     plt.savefig(os.path.join(log_folder,
-                             f"predictions-{model_number}.png"),
+                             f"predictions-{model_number}-{data_predict.seed}.png"),
                 bbox_inches='tight')
     plt.close()
     gc.collect()
@@ -406,7 +406,7 @@ if args.plot_all:
     plot_scales = [512, 256, 128, 64, 32, 16, 8, 4]
     # create a PdfPages object to save multiple plots to same pdf
     pdf = PdfPages(os.path.join(log_folder,
-                                f"RAPSD-{model_number}.pdf"))
+                                f"RAPSD-{model_number}-{data_predict.seed}.pdf"))
 
     for kk in range(num_samples):
         fig, ax = plt.subplots()

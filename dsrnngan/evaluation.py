@@ -338,8 +338,9 @@ def evaluate_multiple_checkpoints(*,
                                        latent_variables=latent_variables,
                                        padding=padding)
 
+    log_line(log_fname, f"Number of images: {num_images}")
     log_line(log_fname, f"Samples per image: {ensemble_size}")
-    log_line(log_fname, f"Initial dates/time indices: {data_gen_valid.dates[0:4]}, {data_gen_valid.time_idxs[0:4]}")
+    log_line(log_fname, f"Data gen seed {data_gen_valid.seed}, initial dates/time indices: {data_gen_valid.dates[0:4]}, {data_gen_valid.time_idxs[0:4]}")
     log_line(log_fname, "N CRPS CRPS_max_4 CRPS_max_16 CRPS_avg_4 CRPS_avg_16 RMSE EMRMSE RALSD MAE OPL OPR")
 
     for model_number in model_numbers:
