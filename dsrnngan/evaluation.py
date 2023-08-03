@@ -385,6 +385,9 @@ def evaluate_multiple_checkpoints(*,
             fname = f"ranksnew-{val_years}-{model_number}.npz"
             np.savez_compressed(os.path.join(ranks_folder, fname), ranks=ranks, lowres=lowress, hires=hiress)
 
+    # Blank line afterwards for ease of reading
+    log_line(log_fname, "")
+
 
 def calculate_ralsd_rmse(truth, samples):
     # check 'batch size' is 1; can rewrite to handle batch size > 1 if necessary

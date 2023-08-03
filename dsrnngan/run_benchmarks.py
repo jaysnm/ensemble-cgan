@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--log_folder', type=str,
                     help="directory to store results")
 parser.add_argument('--predict_year', type=int,
-                    help="year to predict on", default=2019)
+                    help="year to predict on", default=2020)
 parser.add_argument('--num_images', type=int,
                     help="number of images to predict on", default=256)
 parser.set_defaults(include_nn_interp=True)
@@ -134,3 +134,5 @@ for benchmark in benchmark_methods:
     ralsd = np.nanmean(np.array(ralsd_scores[benchmark]))
 
     log_line(log_fname, f"{benchmark} {CRPS_pixel:.6f} {CRPS_max_4:.6f} {CRPS_max_16:.6f} {CRPS_avg_4:.6f} {CRPS_avg_16:.6f} {rmse:.6f} {emrmse:.6f} {ralsd:.6f} {mae:.6f}")
+
+log_line(log_fname, "")

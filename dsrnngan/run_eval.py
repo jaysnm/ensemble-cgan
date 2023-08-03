@@ -3,13 +3,14 @@ import yaml
 
 import matplotlib; matplotlib.use("Agg")  # noqa
 
+import data
 import evaluation
 import read_config
 
 read_config.set_gpu_mode()  # set up whether to use GPU, and mem alloc mode
 
 # input parameters
-log_folder = '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/andrew-output/rev-mainGAN'; model_numbers = [460800]  # noqa: E702
+log_folder = '/ppdata/andrew-output/ICPAC-baseline'; model_numbers = [156800]  # noqa: E702
 val_years = 2020
 
 model_weights_root = os.path.join(log_folder, "models")
@@ -33,10 +34,11 @@ noise_factor = setup_params["EVAL"]["postprocessing_noise_factor"]
 noise_factor = float(noise_factor)
 max_pooling = setup_params["EVAL"]["max_pooling"]
 avg_pooling = setup_params["EVAL"]["avg_pooling"]
+constant_fields = 2
 num_images = 256
 
 if problem_type == 'normal':
-    input_channels = 9
+    input_channels = 2*len(data.all_fcst_fields)
     autocoarsen = False
 elif problem_type == 'autocoarsen':
     input_channels = 1
@@ -63,6 +65,7 @@ evaluation.evaluate_multiple_checkpoints(mode=mode,
                                          filters_gen=filters_gen,
                                          filters_disc=filters_disc,
                                          input_channels=input_channels,
+                                         constant_fields=constant_fields,
                                          latent_variables=latent_variables,
                                          noise_channels=noise_channels,
                                          padding=padding,
