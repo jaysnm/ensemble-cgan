@@ -1,0 +1,13 @@
+MODEL:
+    folder: "/data/andrew/andrew-output/ICPAC-big-ensmeansd"
+    checkpoint: 316800
+
+INPUT:
+    folder: "/data/IFS_regridded"
+    file: "20200315.nc"
+    start_hour: 24
+    end_hour: 48
+
+OUTPUT:
+    folder: "/data/GAN_forecasts"
+    ensemble_members: 10
