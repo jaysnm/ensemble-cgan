@@ -28,6 +28,7 @@ def setup_inputs(*,
                  val_years,
                  autocoarsen,
                  input_channels,
+                 constant_fields,
                  filters_gen,
                  filters_disc,
                  noise_channels,
@@ -39,6 +40,7 @@ def setup_inputs(*,
                                    arch=arch,
                                    downscaling_steps=downscaling_steps,
                                    input_channels=input_channels,
+                                   constant_fields=constant_fields,
                                    filters_gen=filters_gen,
                                    filters_disc=filters_disc,
                                    noise_channels=noise_channels,
@@ -97,7 +99,7 @@ def eval_one_chkpt(*,
     ralsd_all = []
 
     data_gen_iter = iter(data_gen)
-    tpidx = data.all_fcst_fields.index('tp')
+    tpidx = 4*data.all_fcst_fields.index('tp')  # 4*idx has tp ens mean
     batch_size = 1  # do one full-size image at a time
 
     if mode == "det":
@@ -287,12 +289,12 @@ def eval_one_chkpt(*,
     return arrays, crps_scores, other
 
 
-def rank_OP(norm_ranks, num_ranks=100):
-    op = np.count_nonzero(
-        (norm_ranks == 0) | (norm_ranks == 1)
-    )
-    op = float(op)/len(norm_ranks)
-    return op
+def rank_OP(norm_ranks):
+    opL = np.count_nonzero(norm_ranks == 0)
+    opR = np.count_nonzero(norm_ranks == 1)
+    opL = float(opL)/len(norm_ranks)
+    opR = float(opR)/len(norm_ranks)
+    return opL, opR
 
 
 def log_line(log_fname, line):
@@ -315,6 +317,7 @@ def evaluate_multiple_checkpoints(*,
                                   filters_gen,
                                   filters_disc,
                                   input_channels,
+                                  constant_fields,
                                   latent_variables,
                                   noise_channels,
                                   padding,
@@ -328,15 +331,17 @@ def evaluate_multiple_checkpoints(*,
                                        val_years=val_years,
                                        autocoarsen=autocoarsen,
                                        input_channels=input_channels,
+                                       constant_fields=constant_fields,
                                        filters_gen=filters_gen,
                                        filters_disc=filters_disc,
                                        noise_channels=noise_channels,
                                        latent_variables=latent_variables,
                                        padding=padding)
 
+    log_line(log_fname, f"Number of images: {num_images}")
     log_line(log_fname, f"Samples per image: {ensemble_size}")
-    log_line(log_fname, f"Initial dates/times: {data_gen_valid.dates[0:4]}, {data_gen_valid.hours[0:4]}")
-    log_line(log_fname, "N CRPS CRPS_max_4 CRPS_max_16 CRPS_avg_4 CRPS_avg_16 RMSE EMRMSE RALSD MAE OP")
+    log_line(log_fname, f"Data gen seed {data_gen_valid.seed}, initial dates/time indices: {data_gen_valid.dates[0:4]}, {data_gen_valid.time_idxs[0:4]}")
+    log_line(log_fname, "N CRPS CRPS_max_4 CRPS_max_16 CRPS_avg_4 CRPS_avg_16 RMSE EMRMSE RALSD MAE OPL OPR")
 
     for model_number in model_numbers:
         gen_weights_file = os.path.join(weights_dir, f"gen_weights-{model_number:07d}.h5")
@@ -359,7 +364,7 @@ def evaluate_multiple_checkpoints(*,
                                              ensemble_size=ensemble_size,
                                              noise_factor=noise_factor)
         ranks, lowress, hiress = arrays
-        OP = rank_OP(ranks)
+        OPL, OPR = rank_OP(ranks)
         CRPS_pixel = np.asarray(crps['no_pooling']).mean()
         CRPS_max_4 = np.asarray(crps['max_4']).mean()
         CRPS_max_16 = np.asarray(crps['max_16']).mean()
@@ -371,7 +376,7 @@ def evaluate_multiple_checkpoints(*,
         emrmse = np.sqrt(other['emmse'].mean())
         ralsd = np.nanmean(other['ralsd'])
 
-        log_line(log_fname, f"{model_number} {CRPS_pixel:.6f} {CRPS_max_4:.6f} {CRPS_max_16:.6f} {CRPS_avg_4:.6f} {CRPS_avg_16:.6f} {rmse:.6f} {emrmse:.6f} {ralsd:.6f} {mae:.6f} {OP:.6f}")
+        log_line(log_fname, f"{model_number} {CRPS_pixel:.6f} {CRPS_max_4:.6f} {CRPS_max_16:.6f} {CRPS_avg_4:.6f} {CRPS_avg_16:.6f} {rmse:.6f} {emrmse:.6f} {ralsd:.6f} {mae:.6f} {OPL:.6f} {OPR:.6f}")
 
         # save one directory up from model weights, in same dir as logfile
         ranks_folder = os.path.dirname(log_fname)
@@ -379,6 +384,9 @@ def evaluate_multiple_checkpoints(*,
         if model_number in ranks_to_save:
             fname = f"ranksnew-{val_years}-{model_number}.npz"
             np.savez_compressed(os.path.join(ranks_folder, fname), ranks=ranks, lowres=lowress, hires=hiress)
+
+    # Blank line afterwards for ease of reading
+    log_line(log_fname, "")
 
 
 def calculate_ralsd_rmse(truth, samples):
@@ -398,7 +406,10 @@ def calculate_ralsd_rmse(truth, samples):
     # truth may contain invalid (masked-out) data.
     # replace this by the mean... (could instead replace by 0.
     # neither is perfect, and both will affect the spectrum somewhat)
-    filled_truth = truth.filled(truth.mean())
+    try:
+        filled_truth = truth.filled(truth.mean())
+    except:
+        filled_truth = truth.copy()
 
     fft_freq_truth = rapsd(np.squeeze(filled_truth, axis=0), fft_method=np.fft)
     dBtruth = 10 * np.log10(fft_freq_truth)

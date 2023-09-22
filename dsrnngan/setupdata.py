@@ -10,7 +10,7 @@ def setup_batch_gen(train_years,
                     autocoarsen=False,
                     weights=None):
 
-    print(f"autocoarsen flag is {autocoarsen}")
+    # print(f"autocoarsen flag is {autocoarsen}")
     batch_gen_train = DataGenerator(train_years,
                                     batch_size=batch_size,
                                     autocoarsen=autocoarsen,
@@ -25,14 +25,15 @@ def setup_full_image_dataset(years,
     from data_generator import DataGenerator as DataGeneratorFull
     from data import get_dates
 
-    dates = get_dates(years)
+    dates = get_dates(years, start_hour=0, end_hour=168)
     data_full = DataGeneratorFull(dates=dates,
                                   fcst_fields=all_fcst_fields,
+                                  start_hour=0,
+                                  end_hour=168,
                                   batch_size=batch_size,
                                   log_precip=True,
                                   shuffle=True,
                                   constants=True,
-                                  hour='random',
                                   fcst_norm=True,
                                   autocoarsen=autocoarsen)
     return data_full

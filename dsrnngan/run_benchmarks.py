@@ -19,7 +19,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--log_folder', type=str,
                     help="directory to store results")
 parser.add_argument('--predict_year', type=int,
-                    help="year to predict on", default=2019)
+                    help="year to predict on", default=2020)
 parser.add_argument('--num_images', type=int,
                     help="number of images to predict on", default=256)
 parser.set_defaults(include_nn_interp=True)
@@ -37,14 +37,15 @@ batch_size = 1  # memory issues
 log_fname = os.path.join(log_folder, f"benchmarks_{predict_year}_{num_images}.txt")
 
 # setup data
-dates = get_dates(predict_year)
+dates = get_dates(predict_year, start_hour=0, end_hour=168)
 data_benchmarks = DataGeneratorFull(dates=dates,
                                     fcst_fields=all_fcst_fields,
+                                    start_hour=0,
+                                    end_hour=168,
                                     batch_size=batch_size,
                                     log_precip=False,  # no need to denormalise data
                                     shuffle=True,
                                     constants=True,
-                                    hour='random',
                                     fcst_norm=False)
 
 benchmark_methods = []
@@ -64,7 +65,7 @@ emmse_scores = {}
 mae_scores = {}
 ralsd_scores = {}
 
-tpidx = all_fcst_fields.index('tp')
+tpidx = 4*all_fcst_fields.index('tp')
 
 for benchmark in benchmark_methods:
     crps_scores[benchmark] = {}
@@ -133,3 +134,5 @@ for benchmark in benchmark_methods:
     ralsd = np.nanmean(np.array(ralsd_scores[benchmark]))
 
     log_line(log_fname, f"{benchmark} {CRPS_pixel:.6f} {CRPS_max_4:.6f} {CRPS_max_16:.6f} {CRPS_avg_4:.6f} {CRPS_avg_16:.6f} {rmse:.6f} {emrmse:.6f} {ralsd:.6f} {mae:.6f}")
+
+log_line(log_fname, "")

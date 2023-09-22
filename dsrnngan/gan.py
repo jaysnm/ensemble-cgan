@@ -3,7 +3,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers.legacy import Adam
 from tensorflow.python.keras.utils import generic_utils
 
 from layers import GradientPenalty, RandomWeightedAverage
@@ -136,10 +136,10 @@ class WGANGP(object):
     def compile(self, opt_disc=None, opt_gen=None):
         # create optimizers
         if opt_disc is None:
-            opt_disc = Adam(learning_rate=self.learning_rate_disc, beta_1=0.5, beta_2=0.9)
+            opt_disc = Adam(learning_rate=self.learning_rate_disc, beta_1=0.0, beta_2=0.999)
         self.opt_disc = opt_disc
         if opt_gen is None:
-            opt_gen = Adam(learning_rate=self.learning_rate_gen, beta_1=0.5, beta_2=0.9)
+            opt_gen = Adam(learning_rate=self.learning_rate_gen, beta_1=0.0, beta_2=0.999)
         self.opt_gen = opt_gen
 
         with Nontrainable(self.disc):
@@ -162,7 +162,7 @@ class WGANGP(object):
                 loss_weights=[1.0, 1.0, self.gradient_penalty_weight],
                 optimizer=self.opt_disc
             )
-            self.disc_trainer.summary()
+            # self.disc_trainer.summary()
 
     def train(self, batch_gen, noise_gen, num_gen_batches=1,
               training_ratio=1, show_progress=True):

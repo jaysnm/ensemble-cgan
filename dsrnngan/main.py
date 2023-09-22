@@ -1,6 +1,8 @@
 import argparse
+import gc
 import json
 import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # suppress TF debug message spam in v2.12
 import yaml
 from pathlib import Path
 
@@ -8,6 +10,7 @@ import matplotlib; matplotlib.use("Agg")  # noqa: E702
 import numpy as np
 import pandas as pd
 
+import data
 import evaluation
 import plots
 import read_config
@@ -52,7 +55,7 @@ if __name__ == "__main__":
     with open(config_path, 'r') as f:
         try:
             setup_params = yaml.safe_load(f)
-            print(setup_params)
+            # print(setup_params)
         except yaml.YAMLError as exc:
             print(exc)
 
@@ -83,6 +86,7 @@ if __name__ == "__main__":
     noise_factor = setup_params["EVAL"]["postprocessing_noise_factor"]
     max_pooling = setup_params["EVAL"]["max_pooling"]
     avg_pooling = setup_params["EVAL"]["avg_pooling"]
+    constant_fields = 2  # future todo: have dataset config file?
 
     # otherwise these are of type string, e.g. '1e-5'
     lr_gen = float(lr_gen)
@@ -114,7 +118,7 @@ if __name__ == "__main__":
 
     if problem_type == "normal":
         autocoarsen = False
-        input_channels = 9
+        input_channels = 4*len(data.all_fcst_fields)
     elif problem_type == "autocoarsen":
         autocoarsen = True
         input_channels = 1
@@ -123,11 +127,15 @@ if __name__ == "__main__":
 
     if args.do_training:
         # initialize GAN
+
+        # future todo: all these arguments should be wrapped inside
+        # a nice dictionary, or similar, with sensible default values
         model = setupmodel.setup_model(
             mode=mode,
             arch=arch,
             downscaling_steps=df_dict["steps"],
             input_channels=input_channels,
+            constant_fields=constant_fields,
             latent_variables=latent_variables,
             filters_gen=filters_gen,
             filters_disc=filters_disc,
@@ -168,6 +176,7 @@ if __name__ == "__main__":
         plot_fname = os.path.join(log_folder, "progress.pdf")
 
         while training_samples < num_samples:  # main training loop
+            gc.collect()
             print(f"Checkpoint {checkpoint}/{num_checkpoints}")
 
             # train for some number of batches
@@ -243,6 +252,7 @@ if __name__ == "__main__":
                                                  filters_gen=filters_gen,
                                                  filters_disc=filters_disc,
                                                  input_channels=input_channels,
+                                                 constant_fields=constant_fields,
                                                  latent_variables=latent_variables,
                                                  noise_channels=noise_channels,
                                                  padding=padding,

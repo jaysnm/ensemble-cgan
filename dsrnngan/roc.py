@@ -89,7 +89,7 @@ def calculate_roc(*,
                                             constants=True,
                                             hour="random",
                                             fcst_norm=False)
-        tpidx = all_fcst_fields.index('tp')
+        tpidx = 4*all_fcst_fields.index('tp')
 
     auc_scores_roc = {}  # will only contain GAN AUCs; used for "progress vs time" plot
     auc_scores_pr = {}
