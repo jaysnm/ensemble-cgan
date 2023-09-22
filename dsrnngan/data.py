@@ -187,9 +187,9 @@ def load_fcst(field,
     '''
     Returns forecast field data for the given date and time interval.
 
-    Two channels are returned for each field:
-        - instantaneous fields: field at the start and end of the interval
-        - accumulated field: increment over the interval, and the second channel is all 0
+    Four channels are returned for each field:
+        - instantaneous fields: mean and stdev at the start of the interval, mean and stdev at the end of the interval
+        - accumulated field: mean and stdev of increment over the interval, and the last two channels are all 0
     '''
 
     yearstr = date[:4]
