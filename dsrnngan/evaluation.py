@@ -133,10 +133,10 @@ def eval_one_chkpt(*,
             noise_gen = NoiseGenerator(noise_shape, batch_size=batch_size)
             for ii in range(ensemble_size):
                 nn = noise_gen()
-                sample_gen = gen.predict([cond, const, nn])
+                sample_gen = gen.predict([cond, const, nn], verbose=False)
                 samples_gen.append(sample_gen.astype("float32"))
         elif mode == "det":
-            sample_gen = gen.predict([cond, const])
+            sample_gen = gen.predict([cond, const], verbose=False)
             samples_gen.append(sample_gen.astype("float32"))
         elif mode == 'VAEGAN':
             # call encoder once
@@ -146,7 +146,7 @@ def eval_one_chkpt(*,
             for ii in range(ensemble_size):
                 nn = noise_gen()
                 # generate ensemble of preds with decoder
-                sample_gen = gen.decoder.predict([mean, logvar, nn, const])
+                sample_gen = gen.decoder.predict([mean, logvar, nn, const], verbose=False)
                 samples_gen.append(sample_gen.astype("float32"))
 
         # samples generated, now process them (e.g., undo log transform) and calculate MAE etc
