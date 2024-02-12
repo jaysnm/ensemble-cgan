@@ -1,28 +1,9 @@
-EWC:
-    GENERAL:
-        TRUTH_PATH: '/data/IMERG-regICPAC-6hr'
-        FORECAST_PATH: '/mnt/ifs-icpac/IFS-regICPAC-meansd'
-        CONSTANTS_PATH: '/data/constants-regICPAC-meansd'
-
-    TFRecords:
-        tfrecords_path: '/mnt/ifs-icpac/tfrecords-regICPAC-meansd'
-
-
 AOPP:
     GENERAL:
         TRUTH_PATH: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/IMERG-regICPAC-6hr'
-        FORECAST_PATH: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/IFS-regICPAC-meansd'
-        CONSTANTS_PATH: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/constants-regICPAC-meansd'
-
+        FORECAST_PATH: '/home/c/cooperf/IFS/IFS-regICPAC-meansd'
+        CONSTANTS_PATH: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/constants-regICPAC'
+        NORMALISATION_PATH: '/home/c/cooperf/IFS/ICPAC_data/24h_mk2/tfrecords'
+        
     TFRecords:
-        tfrecords_path: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/tfrecords-regICPAC-meansd'
-
-
-COURSE:
-    GENERAL:
-        TRUTH_PATH: '/data/course-material/IMERG'
-        FORECAST_PATH: '/data/course-material/IFSyears'
-        CONSTANTS_PATH: '/data/course-material/constants'
-
-    TFRecords:
-        tfrecords_path: '/data/course-material/tfrecords'
+        tfrecords_path: '/home/c/cooperf/IFS/ICPAC_data/24h_mk2/tfrecords'
