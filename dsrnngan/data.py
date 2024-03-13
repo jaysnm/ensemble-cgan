@@ -199,8 +199,8 @@ def load_fcst(field,
 
     # open using netCDF
     nc_file = nc.Dataset(ds_path, mode="r")
-    all_data_mean = nc_file[f"{field}_mean"]
-    all_data_sd = nc_file[f"{field}_sd"]
+    all_data_mean = nc_file[f"{field}_ensemble_mean"]
+    all_data_sd = nc_file[f"{field}_ensemble_standard_deviation"]
     # data is stored as [day of year, valid time index, lat, lon]
 
     # calculate first index (i.e., day of year, with Jan 1 = 0)
