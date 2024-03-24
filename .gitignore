@@ -6,6 +6,9 @@ test-logs/
 *.sh
 *.yaml
 
+# cGAN folder
+cGAN
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
