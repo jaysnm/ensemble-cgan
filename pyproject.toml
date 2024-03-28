@@ -24,7 +24,6 @@ tqdm = "^4.66.1"
 properscoring = "^0.1"
 climlab = "^0.8.2"
 tensorflow = "2.15"
-tensorrt = "8.6.0"
 eccodes = "^1.7.0"
 
 
