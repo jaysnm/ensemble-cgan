@@ -176,7 +176,7 @@ def create_output_file(nc_out_path):
 nc_in_path = os.path.join(input_folder, input_file)
 nc_in = nc.Dataset(nc_in_path, mode="r")
 start_times = [nc_in["time"][0]]
-valid_times = [nc_in["valid_time"][0,:]]
+valid_times = [nc_in["valid_time"][:]]
 d = datetime(1900,1,1) + timedelta(hours=int(start_times[0]))
 print(f"{d.year}-{d.month:02}-{d.day:02}")
 
@@ -210,7 +210,7 @@ for out_time_idx, in_time_idx in enumerate(range(start_hour//HOURS, end_hour//HO
         
         # Open input netCDF file
         #input_file = f"{field}.nc"
-        input_file = 'IFS_20180606_00Z.nc'
+        #input_file = 'IFS_20180606_00Z.nc'
         nc_in_path = os.path.join(input_folder, input_file)
         nc_in = nc.Dataset(nc_in_path, mode="r")
         
