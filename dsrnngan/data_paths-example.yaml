@@ -25,7 +25,7 @@ COURSE:
   TFRecords:
     tfrecords_path: "/data/course-material/tfrecords"
 
-JASON:
+MYCGAN:
   GENERAL:
     TRUTH_PATH: "/data/course-material/IMERG"
     FORECAST_PATH: "/data/course-material/IFSyears"

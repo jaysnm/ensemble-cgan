@@ -220,6 +220,7 @@ for out_time_idx, in_time_idx in enumerate(
 
         # Open input netCDF file
         # input_file = f"{field}.nc"
+        # input_file = 'IFS_20180606_00Z.nc'
         nc_in_path = os.path.join(input_folder, input_file)
         nc_in = nc.Dataset(nc_in_path, mode="r")
 
