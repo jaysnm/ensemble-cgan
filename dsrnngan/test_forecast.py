@@ -18,7 +18,7 @@
 import os
 import pathlib
 import yaml
-
+from argparse import ArgumentParser
 import netCDF4 as nc
 import numpy as np
 from tensorflow.keras.utils import Progbar
@@ -184,6 +184,7 @@ def create_output_file(nc_out_path):
 def gen_cgan_forecast(in_ifs_file: str | None = None):
 
     # Open input netCDF file to get the times
+    input_file = fcst_params["INPUT"]["file"] if in_ifs_file is None else in_ifs_file
     nc_in_path = os.path.join(input_folder, input_file)
     nc_in = nc.Dataset(nc_in_path, mode="r")
     start_times = [nc_in["time"][0]]
@@ -226,7 +227,6 @@ def gen_cgan_forecast(in_ifs_file: str | None = None):
 
             # Open input netCDF file
             # input_file = f"{field}.nc"
-            input_file = input_file if in_ifs_file is None else in_ifs_file
             nc_in_path = os.path.join(input_folder, input_file)
             nc_in = nc.Dataset(nc_in_path, mode="r")
 
@@ -316,4 +316,15 @@ def gen_cgan_forecast(in_ifs_file: str | None = None):
 
 
 if __name__ == "__main__":
-    gen_cgan_forecast()
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-f",
+        "--ifs",
+        dest="in_ifs",
+        type=str,
+        default="",
+        help="IFS forecast file to be used for cGAN forecast generation",
+    )
+    args = parser.parse_args()
+    in_ifs = None if args.in_ifs == "" else args.in_ifs
+    gen_cgan_forecast(in_ifs_file=in_ifs)
