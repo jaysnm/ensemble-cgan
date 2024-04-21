@@ -180,130 +180,140 @@ def create_output_file(nc_out_path):
 # In[6]:
 
 
-# Open input netCDF file to get the times
-nc_in_path = os.path.join(input_folder, input_file)
-nc_in = nc.Dataset(nc_in_path, mode="r")
-start_times = [nc_in["time"][0]]
-valid_times = [nc_in["valid_time"][:]]
-d = datetime(1900, 1, 1) + timedelta(hours=int(start_times[0]))
-print(f"{d.year}-{d.month:02}-{d.day:02}")
+# create cGAN forecasting entrypoint functions
+def gen_cgan_forecast(in_ifs_file: str | None = None):
 
+    # Open input netCDF file to get the times
+    nc_in_path = os.path.join(input_folder, input_file)
+    nc_in = nc.Dataset(nc_in_path, mode="r")
+    start_times = [nc_in["time"][0]]
+    valid_times = [nc_in["valid_time"][:]]
+    d = datetime(1900, 1, 1) + timedelta(hours=int(start_times[0]))
+    print(f"{d.year}-{d.month:02}-{d.day:02}")
 
-# In[13]:
+    # In[13]:
 
+    # Create output netCDF file
+    out_dir_path = pathlib.Path(output_folder)
+    out_dir_path.mkdir(parents=True, exist_ok=True)
+    nc_out_path = out_dir_path / f"GAN_{d.year}{d.month:02}{d.day:02}.nc"
 
-# Create output netCDF file
-pathlib.Path(output_folder).mkdir(parents=True, exist_ok=True)
-nc_out_path = os.path.join(output_folder, f"GAN_{d.year}{d.month:02}{d.day:02}.nc")
+    # remove forecast file it it exists to prevent writing errors
+    if nc_out_path.exists():
+        nc_out_path.unlink()
 
-netcdf_dict = create_output_file(nc_out_path)
-netcdf_dict["time_data"][0] = start_times[0]
+    netcdf_dict = create_output_file(nc_out_path)
+    netcdf_dict["time_data"][0] = start_times[0]
 
-# loop over time chunks. output forecasts may not start from hour 0, so
-# generate output and input valid time indices using enumerate(...)
-for out_time_idx, in_time_idx in enumerate(
-    range(start_hour // HOURS - 5, end_hour // HOURS - 5)
-):
-    # copy across valid_time from input file
-    netcdf_dict["valid_time_data"][0, out_time_idx] = valid_times[0][in_time_idx]
-    field_arrays = []
+    # loop over time chunks. output forecasts may not start from hour 0, so
+    # generate output and input valid time indices using enumerate(...)
+    for out_time_idx, in_time_idx in enumerate(
+        range(start_hour // HOURS - 5, end_hour // HOURS - 5)
+    ):
+        # copy across valid_time from input file
+        netcdf_dict["valid_time_data"][0, out_time_idx] = valid_times[0][in_time_idx]
+        field_arrays = []
 
-    # the contents of the next loop are v. similar to load_fcst from data.py,
-    # but not quite the same, since that has different assumptions on how the
-    # forecast data is stored.  TODO: unify the data normalisation between these?
-    for field in all_fcst_fields:
-        # Original:
-        # nc_in[field] has shape 1 x 50 x 29 x 384 x 352
-        # corresponding to n_forecasts x n_ensemble_members x n_valid_times x n_lats x n_lons
-        # Ensemble mean:
-        # nc_in[field] has shape len(nc_in["time"]) x 29 x 384 x 352
+        # the contents of the next loop are v. similar to load_fcst from data.py,
+        # but not quite the same, since that has different assumptions on how the
+        # forecast data is stored.  TODO: unify the data normalisation between these?
+        for field in all_fcst_fields:
+            # Original:
+            # nc_in[field] has shape 1 x 50 x 29 x 384 x 352
+            # corresponding to n_forecasts x n_ensemble_members x n_valid_times x n_lats x n_lons
+            # Ensemble mean:
+            # nc_in[field] has shape len(nc_in["time"]) x 29 x 384 x 352
 
-        # Open input netCDF file
-        # input_file = f"{field}.nc"
-        # input_file = 'IFS_20180606_00Z.nc'
-        nc_in_path = os.path.join(input_folder, input_file)
-        nc_in = nc.Dataset(nc_in_path, mode="r")
+            # Open input netCDF file
+            # input_file = f"{field}.nc"
+            input_file = input_file if in_ifs_file is None else in_ifs_file
+            nc_in_path = os.path.join(input_folder, input_file)
+            nc_in = nc.Dataset(nc_in_path, mode="r")
 
-        # grab start and end of 6-hour block in one operation
-        temp_mean = nc_in[f"{field}_ensemble_mean"][
-            in_time_idx : in_time_idx + 2, :, :
-        ]  # 2 x lat x lon
-        temp_start_mean = temp_mean[0, :, :]  # lat x lon, start of timestep
-        temp_end_mean = temp_mean[1, :, :]  # lat x lon, end of timestep
+            # grab start and end of 6-hour block in one operation
+            temp_mean = nc_in[f"{field}_ensemble_mean"][
+                in_time_idx : in_time_idx + 2, :, :
+            ]  # 2 x lat x lon
+            temp_start_mean = temp_mean[0, :, :]  # lat x lon, start of timestep
+            temp_end_mean = temp_mean[1, :, :]  # lat x lon, end of timestep
 
-        temp_std = nc_in[f"{field}_ensemble_standard_deviation"][
-            in_time_idx : in_time_idx + 2, :, :
-        ]  # 2 x lat x lon
-        temp_start_std = temp_std[0, :, :]  # lat x lon, start of timestep
-        temp_end_std = temp_std[1, :, :]  # lat x lon, end of timestep
+            temp_std = nc_in[f"{field}_ensemble_standard_deviation"][
+                in_time_idx : in_time_idx + 2, :, :
+            ]  # 2 x lat x lon
+            temp_start_std = temp_std[0, :, :]  # lat x lon, start of timestep
+            temp_end_std = temp_std[1, :, :]  # lat x lon, end of timestep
 
-        nc_in.close()
+            nc_in.close()
 
-        # return 4 channels per field
-        if field in accumulated_fields:
-            zeros = np.zeros(temp_start_mean.shape)
-            data = np.stack(
-                [temp_start_mean, temp_start_std, zeros, zeros], axis=-1
-            )  # lat x lon x 4
-        else:
-            data = np.stack(
-                [temp_start_mean, temp_start_std, temp_end_mean, temp_end_std], axis=-1
-            )  # lat x lon x 4
-
-        # perform normalisation on forecast data
-        if field in nonnegative_fields:
-            data = np.maximum(
-                data, 0.0
-            )  # eliminate any data weirdness/regridding issues
-
-        if field in ["tp", "cp"]:
-            # precip is measured in metres, so multiply to get mm
-            data *= 1000
-            data /= HOURS  # convert to mm/hr
-        elif field in accumulated_fields:
-            # for all other accumulated fields [just ssr for us]
-            data /= HOURS * 3600  # convert from a 6-hr difference to a per-second rate
-
-        if field in ["tp", "cp"]:
-            data = logprec(data, True)
-        else:
-            # apply transformation to make fields O(1), based on historical
-            # forecast data from one of the training years
-            if field in ["mcc"]:
-                # already 0-1
-                pass
-            elif field in ["sp", "t2m"]:
-                # these are bounded well away from zero, so subtract mean from ens mean (but NOT from ens sd!)
-                data[:, :, 0] -= fcst_norm[field]["mean"]
-                data[:, :, 2] -= fcst_norm[field]["mean"]
-                data /= fcst_norm[field]["std"]
-            elif field in nonnegative_fields:
-                data /= fcst_norm[field]["max"]
+            # return 4 channels per field
+            if field in accumulated_fields:
+                zeros = np.zeros(temp_start_mean.shape)
+                data = np.stack(
+                    [temp_start_mean, temp_start_std, zeros, zeros], axis=-1
+                )  # lat x lon x 4
             else:
-                # winds
-                data /= max(-fcst_norm[field]["min"], fcst_norm[field]["max"])
+                data = np.stack(
+                    [temp_start_mean, temp_start_std, temp_end_mean, temp_end_std],
+                    axis=-1,
+                )  # lat x lon x 4
 
-        field_arrays.append(data)
+            # perform normalisation on forecast data
+            if field in nonnegative_fields:
+                data = np.maximum(
+                    data, 0.0
+                )  # eliminate any data weirdness/regridding issues
 
-    network_fcst_input = np.concatenate(
-        field_arrays, axis=-1
-    )  # lat x lon x 4*len(all_fcst_fields)
-    network_fcst_input = np.expand_dims(
-        network_fcst_input, axis=0
-    )  # 1 x lat x lon x 4*len(...)
+            if field in ["tp", "cp"]:
+                # precip is measured in metres, so multiply to get mm
+                data *= 1000
+                data /= HOURS  # convert to mm/hr
+            elif field in accumulated_fields:
+                # for all other accumulated fields [just ssr for us]
+                data /= (
+                    HOURS * 3600
+                )  # convert from a 6-hr difference to a per-second rate
 
-    noise_shape = network_fcst_input.shape[1:-1] + (noise_channels,)
-    noise_gen = NoiseGenerator(noise_shape, batch_size=1)
-    progbar = Progbar(ensemble_members)
-    for ii in range(ensemble_members):
-        gan_inputs = [network_fcst_input, network_const_input, noise_gen()]
-        gan_prediction = gen.predict(gan_inputs, verbose=False)  # 1 x lat x lon x 1
-        netcdf_dict["precipitation"][0, ii, out_time_idx, :, :] = denormalise(
-            gan_prediction[0, :, :, 0]
-        )
-        progbar.add(1)
+            if field in ["tp", "cp"]:
+                data = logprec(data, True)
+            else:
+                # apply transformation to make fields O(1), based on historical
+                # forecast data from one of the training years
+                if field in ["mcc"]:
+                    # already 0-1
+                    pass
+                elif field in ["sp", "t2m"]:
+                    # these are bounded well away from zero, so subtract mean from ens mean (but NOT from ens sd!)
+                    data[:, :, 0] -= fcst_norm[field]["mean"]
+                    data[:, :, 2] -= fcst_norm[field]["mean"]
+                    data /= fcst_norm[field]["std"]
+                elif field in nonnegative_fields:
+                    data /= fcst_norm[field]["max"]
+                else:
+                    # winds
+                    data /= max(-fcst_norm[field]["min"], fcst_norm[field]["max"])
 
-netcdf_dict["rootgrp"].close()
+            field_arrays.append(data)
+
+        network_fcst_input = np.concatenate(
+            field_arrays, axis=-1
+        )  # lat x lon x 4*len(all_fcst_fields)
+        network_fcst_input = np.expand_dims(
+            network_fcst_input, axis=0
+        )  # 1 x lat x lon x 4*len(...)
+
+        noise_shape = network_fcst_input.shape[1:-1] + (noise_channels,)
+        noise_gen = NoiseGenerator(noise_shape, batch_size=1)
+        progbar = Progbar(ensemble_members)
+        for ii in range(ensemble_members):
+            gan_inputs = [network_fcst_input, network_const_input, noise_gen()]
+            gan_prediction = gen.predict(gan_inputs, verbose=False)  # 1 x lat x lon x 1
+            netcdf_dict["precipitation"][0, ii, out_time_idx, :, :] = denormalise(
+                gan_prediction[0, :, :, 0]
+            )
+            progbar.add(1)
+
+    netcdf_dict["rootgrp"].close()
 
 
-# In[ ]:
+if __name__ == "__main__":
+    gen_cgan_forecast()
