@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "downscaling-cgan"
-version = "0.1.0"
+version = "0.1.1"
 description = "post-process rainfall forecasts using cGAN"
 authors = ["Jason Kinyua <jaysnmury@gmail.com>"]
 readme = "README.md"
@@ -24,7 +24,7 @@ tqdm = "^4.66.1"
 properscoring = "^0.1"
 climlab = "^0.8.2"
 tensorflow = "2.15"
-eccodes = "^1.7.0"
+eccodes = "^2.39.1"
 
 
 
