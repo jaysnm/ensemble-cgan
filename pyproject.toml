@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "downscaling-cgan"
-version = "0.1.1"
+version = "0.1.2"
 description = "post-process rainfall forecasts using cGAN"
 authors = ["Jason Kinyua <jaysnmury@gmail.com>"]
 readme = "README.md"
@@ -9,7 +9,7 @@ packages = [{include = "dsrnngan"}]
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
 seaborn = "^0.13.1"
-Cartopy = "^0.22.0"
+Cartopy = "0.24.1"
 jupyter = "^1.0.0"
 xarray = "^2024.1.0"
 matplotlib = "^3.8.2"
