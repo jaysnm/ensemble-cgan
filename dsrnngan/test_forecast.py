@@ -197,8 +197,10 @@ def gen_cgan_forecast(in_ifs_file: str | None = None):
     # Create output netCDF file
     out_dir_path = pathlib.Path(output_folder)
     out_dir_path.mkdir(parents=True, exist_ok=True)
+    # extract forecast initialization start time from IFS file name
+    fcst_init_time = input_file.split("_")[-1].replace("Z.nc", "")
     nc_out_path = (
-        out_dir_path / f"GAN_{d.year}{d.month:02}{d.day:02}_{start_times[0]:02}Z.nc"
+        out_dir_path / f"GAN_{d.year}{d.month:02}{d.day:02}_{fcst_init_time:02}Z.nc"
     )
 
     # remove forecast file it it exists to prevent writing errors
