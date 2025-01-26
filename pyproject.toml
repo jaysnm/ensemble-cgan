@@ -1,10 +1,10 @@
 [tool.poetry]
 name = "downscaling-cgan"
-version = "0.1.0"
+version = "0.1.1"
 description = "post-process rainfall forecasts using cGAN"
 authors = ["Jason Kinyua <jaysnmury@gmail.com>"]
 readme = "README.md"
-packages = [{include = "dsrnngan"}]
+packages = [{ include = "dsrnngan" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
