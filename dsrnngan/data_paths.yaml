@@ -7,3 +7,13 @@ AOPP:
         
     TFRecords:
         tfrecords_path: '/network/group/aopp/predict/TIP021_MCRAECOOPER_IFS/ICPAC_data/24h_IMERG_v7_30h-54h/tfrecords'
+
+MVUAKUBWA:
+    GENERAL:
+        TRUTH_PATH: '/home/jason/.docker-data/cgan-store/model/mvua-kubwa/IMERG'
+        FORECAST_PATH: '/home/jason/.docker-data/cgan-store/model/mvua-kubwa/model-weights'
+        CONSTANTS_PATH: '/home/jason/.docker-data/cgan-store/model/mvua-kubwa/constants'
+        NORMALISATION_PATH: '/home/jason/.docker-data/cgan-store/model/mvua-kubwa/constants'
+        
+    TFRecords:
+        tfrecords_path: '/home/jason/.docker-data/cgan-store/model/mvua-kubwa/tfrecords'
