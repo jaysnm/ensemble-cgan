@@ -33,7 +33,9 @@ from datetime import datetime, timedelta
 
 
 # Get the date from the command line argument
-time_str = sys.argv[1]
+# time_str = sys.argv[1]
+# grab input file path from comandline arguments
+input_file = sys.argv[1]
 # year = int(time_str[0:4])
 # month = int(time_str[4:6])
 # day = int(time_str[6:8])
@@ -74,7 +76,7 @@ input_folder = fcst_params["INPUT"]["folder"]
 
 #input_file = fcst_params["INPUT"]["file"]
 # Instead of reading input_file from forecast.yaml, get it from the command line
-input_file = f"IFS_{time_str}_00Z.nc"
+# input_file = f"IFS_{time_str}_00Z.nc"
 
 start_hour = fcst_params["INPUT"]["start_hour"]
 end_hour = fcst_params["INPUT"]["end_hour"]
