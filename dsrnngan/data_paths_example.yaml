@@ -1,0 +1,36 @@
+EWC:
+  GENERAL:
+    TRUTH_PATH: "/data/IMERG-regICPAC-6hr"
+    FORECAST_PATH: "/mnt/ifs-icpac/IFS-regICPAC-meansd"
+    CONSTANTS_PATH: "/data/constants-regICPAC-meansd"
+
+  TFRecords:
+    tfrecords_path: "/mnt/ifs-icpac/tfrecords-regICPAC-meansd"
+
+AOPP:
+  GENERAL:
+    TRUTH_PATH: "/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/IMERG-regICPAC-6hr"
+    FORECAST_PATH: "/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/IFS-regICPAC-meansd"
+    CONSTANTS_PATH: "/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/constants-regICPAC-meansd"
+
+  TFRecords:
+    tfrecords_path: "/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/tfrecords-regICPAC-meansd"
+
+COURSE:
+  GENERAL:
+    TRUTH_PATH: "/data/course-material/IMERG"
+    FORECAST_PATH: "/data/course-material/IFSyears"
+    CONSTANTS_PATH: "/data/course-material/constants"
+
+  TFRecords:
+    tfrecords_path: "/data/course-material/tfrecords"
+
+OPERATIONAL:
+  GENERAL:
+    TRUTH_PATH: "/docker-data/cgan-data/model/IMERG"
+    FORECAST_PATH: "/docker-data/cgan-data/jobs/cgan-ifs-6h-ens"
+    CONSTANTS_PATH: "/docker-data/cgan-data/model/constants"
+    NORMALISATION_PATH: "/docker-data/cgan-data/model/constants"
+
+  TFRecords:
+    tfrecords_path: "/docker-data/cgan-data/model/tfrecords"

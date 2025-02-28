@@ -1,9 +1,0 @@
-AOPP:
-    GENERAL:
-        TRUTH_PATH: '/network/group/aopp/predict/TIP021_MCRAECOOPER_IFS/IMERG_V07/ICPAC_region/24h'
-        FORECAST_PATH: '/network/group/aopp/predict/TIP021_MCRAECOOPER_IFS/IFS-regICPAC-meansd'
-        CONSTANTS_PATH: '/network/group/aopp/predict/TIP018_HARRIS_TENSORFL/constants-regICPAC'
-        NORMALISATION_PATH: '/network/group/aopp/predict/TIP021_MCRAECOOPER_IFS/ICPAC_data/24h_IMERG_v7_30h-54h/tfrecords'
-        
-    TFRecords:
-        tfrecords_path: '/network/group/aopp/predict/TIP021_MCRAECOOPER_IFS/ICPAC_data/24h_IMERG_v7_30h-54h/tfrecords'

@@ -1,0 +1,13 @@
+MODEL:
+  folder: "/docker-data/cgan-data/model/jurre-brishti-weights"
+  checkpoint: 316800
+
+INPUT:
+  folder: "/docker-data/cgan-data/jobs/cgan-ifs-6h-ens"
+  file: "20200315.nc"
+  start_hour: 30
+  end_hour: 54
+
+OUTPUT:
+  folder: "/docker-data/cgan-data/jobs/jurre-brishti-ens"
+  ensemble_members: 1000
